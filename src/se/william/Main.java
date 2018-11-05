@@ -43,10 +43,14 @@ public class Main {
         List<Enemy> enemies = createEnemy();
         List<Wall> walls = createOuterFrame();
         List<MovingWall> movingWalls = createMovingWall();
-        final int timeCounterThreshold = 80;
-        int timeCounter = 0;
+        List<List<MovingWall>> allaVäggar = new ArrayList<>();
+        allaVäggar.add(movingWalls);
 
-        while(true){
+        int timeCounterThreshold = 80;
+        int timeCounter = 0;
+        int wallCounter = 0;
+
+        while (isPlayerAlive(player, allaVäggar)) {
             KeyStroke keyStroke;
             do {
                 // everything inside this loop will be called approximately every ~5 millisec.
@@ -54,16 +58,47 @@ public class Main {
                 keyStroke = terminal.pollInput();
 
                 timeCounter++;
-                if (timeCounter >= timeCounterThreshold){
+
+                if (timeCounter >= timeCounterThreshold) {
                     timeCounter = 0;
+
+                    for (int i = 0; i < allaVäggar.size(); i++) {
+                        if (allaVäggar.get(i).get(0).getX() == 65) {
+                            allaVäggar.add(createMovingWall());
+                            wallCounter++;
+                        }
+                    }
+
+                    switch (wallCounter){
+                        case 10:
+                            timeCounterThreshold = 60;
+                            break;
+                        case 20:
+                            timeCounterThreshold = 40;
+                            break;
+
+
+
+                    }
+
+
+                    for (List<MovingWall> enVägg : allaVäggar) {
+                        printMovingWall(terminal, enVägg);
+                    }
+
+//                    printMovingWall(terminal, movingWalls);
+//                    printMovingWall(terminal, movingWalls2);
+
+                    for (List<MovingWall> enVägg : allaVäggar) {
+                        for (MovingWall flytta : enVägg) {
+                            flytta.moveLeft();
+                        }
+                    }
 
                     printPlayer(terminal, player);
                     printWall(terminal, walls);
-                    printMovingWall(terminal, movingWalls);
-                    for (MovingWall movingWall : movingWalls) {
-                        movingWall.moveLeft();
-                    }
 
+                    removeDeadWall(allaVäggar);
 
                     terminal.flush(); // don't forget to flush to see any updates!
                 }
@@ -98,7 +133,6 @@ public class Main {
     }
 
     private static void printMovingWall(Terminal terminal, List<MovingWall> movingWalls) throws IOException {
-
         for (MovingWall movingWall : movingWalls) {
             terminal.setCursorPosition(movingWall.getPreviousX(), movingWall.getPreviousY());
             terminal.putCharacter(' ');
@@ -142,16 +176,46 @@ public class Main {
 
     private static List<MovingWall> createMovingWall() {
         List<MovingWall> walls = new ArrayList<>();
+        int gap = ThreadLocalRandom.current().nextInt(1, 21);
         for (int i = 1; i < 23; i++) {
-            walls.add(new MovingWall(70, i, '<'));
+            if (i == gap || i == gap + 1) {
+                walls.add(new MovingWall(77, i, ' '));
+            } else {
+                walls.add(new MovingWall(77, i, '<'));
+            }
+
         }
         return walls;
+    }
+
+    private static void removeDeadWall(List<List<MovingWall>> allWalls) {
+
+        for (int i = 0; i < allWalls.size(); i++) {
+            List<MovingWall> wall = allWalls.get(i);
+            for (int j = 0; j < wall.size(); j++) {
+                if (wall.get(j).getX() == -2) {
+                    wall.remove(j);
+                }
+            }
+        }
+
     }
 
     private static List<Enemy> createEnemy() {
         List<Enemy> enemies = new ArrayList<>();
         enemies.add(new Enemy(40, 10, 'Q'));
         return enemies;
+    }
+
+    public static boolean isPlayerAlive(Player player, List<List<MovingWall>> allaVäggar) {
+        for (List<MovingWall> movingWalls : allaVäggar) {
+            for (MovingWall väggPlupp : movingWalls) {
+                if ((player.getX() == väggPlupp.getX()) && (player.getY() == väggPlupp.getY()) && (väggPlupp.getSymbol() == '<')) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
 
