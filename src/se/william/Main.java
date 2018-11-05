@@ -42,6 +42,7 @@ public class Main {
 
         Player player = new Player(10, 10, '\u263a');
 //        List<Enemy> enemies = createEnemy();
+        WriteAndRead writeAndRead = new WriteAndRead();
         List<Wall> walls = createOuterFrame();
         List<MovingWall> movingWalls = createMovingWall();
         List<List<MovingWall>> allaVäggar = new ArrayList<>();
@@ -50,6 +51,7 @@ public class Main {
         int timeCounterThreshold = 80;
         int timeCounter = 0;
         int wallCounter = 1;
+        int highScore = writeAndRead.readFromFile();
 
         while (true) {
             KeyStroke keyStroke;
@@ -101,7 +103,7 @@ public class Main {
 
                     printPlayer(terminal, player);
                     printWall(terminal, walls);
-                    printScore(terminal,wallCounter);
+                    printScore(terminal,wallCounter, highScore, writeAndRead);
                     removeDeadWall(allaVäggar);
                     terminal.flush(); // don't forget to flush to see any updates!
                 }
@@ -137,13 +139,30 @@ public class Main {
         terminal.resetColorAndSGR();
     }
 
-    private static void printScore(Terminal terminal, int score) throws IOException {
+    private static void printScore(Terminal terminal, int score, int highscore, WriteAndRead writeAndRead) throws IOException {
 
         String playerText = "Player 1: Score " +(score*100);
+        String highScore = "";
+        if (score*100 > highscore){
+            highScore = "Highscore: "+score*100;
+        } else {
+            highScore = "Highscore: "+highscore;
+        }
+
         for (int i = 0; i < playerText.length(); i++) {
             terminal.setForegroundColor(new TextColor.RGB(0,255,0));
             terminal.setCursorPosition(i,0);
             terminal.putCharacter(playerText.charAt(i));
+        }
+        int startArrayHighScore = 80 - highScore.length();
+        for (int i = 0; i < highScore.length(); i++) {
+            terminal.setForegroundColor(new TextColor.RGB(0,255,0));
+            terminal.setCursorPosition(i+startArrayHighScore,0);
+            terminal.putCharacter(highScore.charAt(i));
+        }
+        if (score*100 > highscore){
+            writeAndRead.writeToFile(String.valueOf(score*100), false);
+
         }
         terminal.resetColorAndSGR();
     }
