@@ -1,9 +1,10 @@
 package se.william;
 
+import com.googlecode.lanterna.TerminalPosition;
+import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
-import se.william.Player;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ public class Main {
 
 
         Player player = new Player(10, 10, '\u263a');
-        List<Enemy> enemies = createEnemy();
+//        List<Enemy> enemies = createEnemy();
         List<Wall> walls = createOuterFrame();
         List<MovingWall> movingWalls = createMovingWall();
         List<List<MovingWall>> allaVäggar = new ArrayList<>();
@@ -48,9 +49,9 @@ public class Main {
 
         int timeCounterThreshold = 80;
         int timeCounter = 0;
-        int wallCounter = 0;
+        int wallCounter = 1;
 
-        while (isPlayerAlive(player, allaVäggar)) {
+        while (true) {
             KeyStroke keyStroke;
             do {
                 // everything inside this loop will be called approximately every ~5 millisec.
@@ -70,24 +71,27 @@ public class Main {
                     }
 
                     switch (wallCounter){
-                        case 10:
-                            timeCounterThreshold = 60;
+                        case 3:
+                            timeCounterThreshold = 50;
                             break;
-                        case 20:
+                        case 6:
                             timeCounterThreshold = 40;
                             break;
-
-
-
+                        case 9:
+                            timeCounterThreshold = 30;
+                            break;
+                        case 12:
+                            timeCounterThreshold = 20;
+                            break;
                     }
 
+                    if (!isPlayerAlive(player, allaVäggar)) {
+                        System.exit(1);
+                    }
 
                     for (List<MovingWall> enVägg : allaVäggar) {
                         printMovingWall(terminal, enVägg);
                     }
-
-//                    printMovingWall(terminal, movingWalls);
-//                    printMovingWall(terminal, movingWalls2);
 
                     for (List<MovingWall> enVägg : allaVäggar) {
                         for (MovingWall flytta : enVägg) {
@@ -97,9 +101,8 @@ public class Main {
 
                     printPlayer(terminal, player);
                     printWall(terminal, walls);
-
+                    printScore(terminal,wallCounter);
                     removeDeadWall(allaVäggar);
-
                     terminal.flush(); // don't forget to flush to see any updates!
                 }
 
@@ -128,18 +131,36 @@ public class Main {
             terminal.putCharacter(' ');
 
             terminal.setCursorPosition(wall.getX(), wall.getY());
+            terminal.setForegroundColor(new TextColor.RGB(0, 255, 0));
             terminal.putCharacter(wall.getSymbol());
         }
+        terminal.resetColorAndSGR();
+    }
+
+    private static void printScore(Terminal terminal, int score) throws IOException {
+
+        String playerText = "Player 1: Score " +(score*100);
+        for (int i = 0; i < playerText.length(); i++) {
+            terminal.setForegroundColor(new TextColor.RGB(0,255,0));
+            terminal.setCursorPosition(i,0);
+            terminal.putCharacter(playerText.charAt(i));
+        }
+        terminal.resetColorAndSGR();
     }
 
     private static void printMovingWall(Terminal terminal, List<MovingWall> movingWalls) throws IOException {
         for (MovingWall movingWall : movingWalls) {
+            int red = ThreadLocalRandom.current().nextInt(0,256);
+            int blue = ThreadLocalRandom.current().nextInt(0,256);
+            int green = ThreadLocalRandom.current().nextInt(0,256);
+            terminal.setForegroundColor(new TextColor.RGB(red,blue,green));
             terminal.setCursorPosition(movingWall.getPreviousX(), movingWall.getPreviousY());
             terminal.putCharacter(' ');
 
             terminal.setCursorPosition(movingWall.getX(), movingWall.getY());
             terminal.putCharacter(movingWall.getSymbol());
         }
+        terminal.resetColorAndSGR();
     }
 
 
@@ -162,13 +183,13 @@ public class Main {
 
     private static List<Wall> createOuterFrame() {
         List<Wall> walls = new ArrayList<>();
-        for (int i = 0; i < 24; i++) {
+        for (int i = 1; i < 24; i++) {
             walls.add(new Wall(80, i, 'X'));
             walls.add(new Wall(0, i, 'X'));
         }
 
         for (int i = 0; i < 80; i++) {
-            walls.add(new Wall(i, 0, 'X'));
+            walls.add(new Wall(i, 1, 'X'));
             walls.add(new Wall(i, 24, 'X'));
         }
         return walls;
