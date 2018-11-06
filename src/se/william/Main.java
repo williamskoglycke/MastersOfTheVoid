@@ -275,11 +275,10 @@ public class Main {
 
             List<MovingWall> wall = allWalls.get(i);
             for (int j = 0; j < wall.size(); j++) {
-                if (wall.get(j).getX() == 0) {
+                if (wall.get(j).getX() == -1) {
                     allWalls.remove(wall);
                 }
             }
-
         }
 
     }
