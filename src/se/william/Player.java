@@ -41,9 +41,16 @@ public class Player {
     }
 
     public void moveUp(){
+
         previousX = x;
         previousY = y;
-        y--;
+        if (previousY < 3){
+            //Sätt y = 2 om du ej vill ha "studs"
+            y = 2;
+        } else {
+            y--;
+        }
+
     }
 
     public void moveDown(){

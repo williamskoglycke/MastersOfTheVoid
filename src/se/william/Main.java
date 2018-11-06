@@ -71,7 +71,7 @@ public class Main {
                     }
 
                     // Ökar svårighetsgraden var tredje skapad vägg
-                    switch (wallCounter){
+                    switch (wallCounter) {
                         case 3:
                             timeCounterThreshold = 50;
                             break;
@@ -87,7 +87,7 @@ public class Main {
                     }
 
                     if (!isPlayerAlive(player, allaVäggar)) {
-                        System.exit(1);
+                        break;
                     }
 
                     for (List<MovingWall> enVägg : allaVäggar) {
@@ -102,7 +102,7 @@ public class Main {
 
                     printPlayer(terminal, player);
                     printWall(terminal, outerWalls);
-                    printScore(terminal,wallCounter, highScore, writeAndRead);
+                    printScore(terminal, wallCounter, highScore, writeAndRead);
                     removeDeadWall(allaVäggar);
                     terminal.flush(); // don't forget to flush to see any updates!
                 }
@@ -110,10 +110,57 @@ public class Main {
 
             } while (keyStroke == null);
 
+            if (!isPlayerAlive(player, allaVäggar)) {
+                printGameOverScreen(terminal, highScore, wallCounter);
+                terminal.flush();
+                break;
+            }
+
             movePlayer(player, keyStroke);
             printPlayer(terminal, player);
 
             terminal.flush(); // don't forget to flush to see any updates!
+        }
+    }
+
+    private static void printGameOverScreen(Terminal terminal, int highScore, int score) throws IOException {
+        String gameOver =
+                "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo&" +
+                "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo&" +
+                "ooooooooooooo+++++++++oooooo++++++oooooo+++ooooooooo+++ooo++++++++++++oooooooooo&" +
+                "oooooooooooo/        `ooooo+      ooooo+   +oooooooo`  +oo`           /ooooooooo&" +
+                "ooooooooo+..-::::::::/oo+..-::::::-.-oo+   ...ooo--.   +oo`  :::::::::+ooooooooo&" +
+                "ooooooooo/  `oo+/////+oo+   //////   +o+   ```///.``   +oo`  //////+oooooooooooo&" +
+                "ooooooooo/  `oo/     `oo+            +o+   +oo   +oo`  +oo`        /oooooooooooo&" +
+                "ooooooooo/  `oo+//:  `oo+   /////:   +o+   +oo///ooo`  +oo`  ://///+oooooooooooo&" +
+                "ooooooooo+.../////:  `oo+   ooooo+   +o+   +oooooooo`  +oo`  :////////+ooooooooo&" +
+                "oooooooooooo/        `oo+  `ooooo+   +o+   +oooooooo`  +oo`           /ooooooooo&" +
+                "oooooooooooo+/////////ooo///oooooo///ooo///ooooooooo///ooo////////////+ooooooooo&" +
+                "oooooooooooo+//////oooooo///ooooooooo///ooo////////////ooo/////////+oooooooooooo&" +
+                "oooooooooooo/     `ooooo+  `oooooooo+   +o+            +oo`        /oooooooooooo&" +
+                "ooooooooo+...//////...oo+   oooooooo+   +o+   /////////ooo`  ://///...+ooooooooo&" +
+                "ooooooooo/  `ooooo+  `oo+   oooooooo+   +o+   ://///oooooo`  ://///`  /ooooooooo&" +
+                "ooooooooo/  `ooooo+  `oo+   oooooooo+   +o+         +ooooo`           /ooooooooo&" +
+                "ooooooooo/  `ooooo+  `ooo++/```oo+```/++oo+   /+++++oooooo`  /++`  :+++ooooooooo&" +
+                "ooooooooo+..-::::::..-ooooo+...:::-.-ooooo+   :::::::::+oo`  /oo--.:::+ooooooooo&" +
+                "oooooooooooo/     `ooooooooooo+   oooooooo+            +oo`  /ooooo`  /ooooooooo&" +
+                "ooooooooooooo++++++oooooooooooo+++ooooooooo++++++++++++ooo+++oooooo++++ooooooooo&" +
+                "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo&" +
+                "                                                                                ";
+
+        String[] gameOverArray = gameOver.split("&");
+
+        terminal.setForegroundColor(new TextColor.RGB(0, 255, 0));
+
+        for (int i = 0; i < gameOverArray.length; i++) {
+
+            for (int j = 0; j < gameOverArray[i].length(); j++) {
+                //System.out.println(gameOverArray[i].length());
+                //System.out.print(gameOverArray[i].charAt(j));
+                terminal.setCursorPosition(j, i+1);
+                terminal.putCharacter(gameOverArray[i].charAt(j));
+            }
+            System.out.println();
         }
     }
 
@@ -140,25 +187,25 @@ public class Main {
 
     private static void printScore(Terminal terminal, int currentScore, int highscoreBeforeGame, WriteAndRead writeAndReadHighscoreFromFile) throws IOException {
 
-        String playerText = "Player 1: Score " +(currentScore*100);
+        String playerText = "Player 1: Score " + (currentScore * 100);
         String highScore = "";
-        if (currentScore*100 > highscoreBeforeGame){
-            highScore = "Highscore: "+currentScore*100;
-            writeAndReadHighscoreFromFile.writeToFile(String.valueOf(currentScore*100), false);
+        if (currentScore * 100 > highscoreBeforeGame) {
+            highScore = "Highscore: " + currentScore * 100;
+            writeAndReadHighscoreFromFile.writeToFile(String.valueOf(currentScore * 100), false);
         } else {
-            highScore = "Highscore: "+highscoreBeforeGame;
+            highScore = "Highscore: " + highscoreBeforeGame;
         }
 
         for (int i = 0; i < playerText.length(); i++) {
-            terminal.setForegroundColor(new TextColor.RGB(0,255,0));
-            terminal.setCursorPosition(i,0);
+            terminal.setForegroundColor(new TextColor.RGB(0, 255, 0));
+            terminal.setCursorPosition(i, 0);
             terminal.putCharacter(playerText.charAt(i));
         }
 
         int startArrayHighScore = 80 - highScore.length();
         for (int i = 0; i < highScore.length(); i++) {
-            terminal.setForegroundColor(new TextColor.RGB(0,255,0));
-            terminal.setCursorPosition(i+startArrayHighScore,0);
+            terminal.setForegroundColor(new TextColor.RGB(0, 255, 0));
+            terminal.setCursorPosition(i + startArrayHighScore, 0);
             terminal.putCharacter(highScore.charAt(i));
         }
 
@@ -167,10 +214,10 @@ public class Main {
 
     private static void printMovingWall(Terminal terminal, List<MovingWall> movingWalls) throws IOException {
         for (MovingWall movingWall : movingWalls) {
-            int red = ThreadLocalRandom.current().nextInt(0,256);
-            int blue = ThreadLocalRandom.current().nextInt(0,256);
-            int green = ThreadLocalRandom.current().nextInt(0,256);
-            terminal.setForegroundColor(new TextColor.RGB(red,blue,green));
+            int red = ThreadLocalRandom.current().nextInt(0, 256);
+            int blue = ThreadLocalRandom.current().nextInt(0, 256);
+            int green = ThreadLocalRandom.current().nextInt(0, 256);
+            terminal.setForegroundColor(new TextColor.RGB(red, blue, green));
             terminal.setCursorPosition(movingWall.getPreviousX(), movingWall.getPreviousY());
             terminal.putCharacter(' ');
 
