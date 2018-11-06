@@ -2,6 +2,7 @@ package se.william;
 
 import java.io.*;
 
+// Skriver highscoret till highscore.txt
 public class WriteAndRead {
 
     private final String fileName = "highscore.txt";
@@ -22,7 +23,6 @@ public class WriteAndRead {
     public Integer readFromFile() {
 
         String fileName = "highscore.txt";
-        String line = null;
         String highscore = "";
 
         try {

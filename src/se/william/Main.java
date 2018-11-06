@@ -1,6 +1,5 @@
 package se.william;
 
-import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
@@ -39,11 +38,9 @@ public class Main {
 
     private static void simulationLoop(Terminal terminal) throws InterruptedException, IOException {
 
-
         Player player = new Player(10, 10, '\u263a');
-//        List<Enemy> enemies = createEnemy();
         WriteAndRead writeAndRead = new WriteAndRead();
-        List<Wall> walls = createOuterFrame();
+        List<OuterWall> outerWalls = createOuterFrame();
         List<MovingWall> movingWalls = createMovingWall();
         List<List<MovingWall>> allaVäggar = new ArrayList<>();
         allaVäggar.add(movingWalls);
@@ -65,13 +62,15 @@ public class Main {
                 if (timeCounter >= timeCounterThreshold) {
                     timeCounter = 0;
 
+                    // Skapar en ny vägg när den första kommit till x65
                     for (int i = 0; i < allaVäggar.size(); i++) {
                         if (allaVäggar.get(i).get(0).getX() == 65) {
                             allaVäggar.add(createMovingWall());
-                            wallCounter++;
+                            wallCounter++; // Lägger till en poäng per vägg
                         }
                     }
 
+                    // Ökar svårighetsgraden var tredje skapad vägg
                     switch (wallCounter){
                         case 3:
                             timeCounterThreshold = 50;
@@ -102,7 +101,7 @@ public class Main {
                     }
 
                     printPlayer(terminal, player);
-                    printWall(terminal, walls);
+                    printWall(terminal, outerWalls);
                     printScore(terminal,wallCounter, highScore, writeAndRead);
                     removeDeadWall(allaVäggar);
                     terminal.flush(); // don't forget to flush to see any updates!
@@ -126,27 +125,28 @@ public class Main {
         terminal.putCharacter(player.getSymbol());
     }
 
-    private static void printWall(Terminal terminal, List<Wall> walls) throws IOException {
+    private static void printWall(Terminal terminal, List<OuterWall> outerWalls) throws IOException {
 
-        for (Wall wall : walls) {
-            terminal.setCursorPosition(wall.getPreviousX(), wall.getPreviousY());
+        for (OuterWall outerWall : outerWalls) {
+            terminal.setCursorPosition(outerWall.getPreviousX(), outerWall.getPreviousY());
             terminal.putCharacter(' ');
 
-            terminal.setCursorPosition(wall.getX(), wall.getY());
+            terminal.setCursorPosition(outerWall.getX(), outerWall.getY());
             terminal.setForegroundColor(new TextColor.RGB(0, 255, 0));
-            terminal.putCharacter(wall.getSymbol());
+            terminal.putCharacter(outerWall.getSymbol());
         }
         terminal.resetColorAndSGR();
     }
 
-    private static void printScore(Terminal terminal, int score, int highscore, WriteAndRead writeAndRead) throws IOException {
+    private static void printScore(Terminal terminal, int currentScore, int highscoreBeforeGame, WriteAndRead writeAndReadHighscoreFromFile) throws IOException {
 
-        String playerText = "Player 1: Score " +(score*100);
+        String playerText = "Player 1: Score " +(currentScore*100);
         String highScore = "";
-        if (score*100 > highscore){
-            highScore = "Highscore: "+score*100;
+        if (currentScore*100 > highscoreBeforeGame){
+            highScore = "Highscore: "+currentScore*100;
+            writeAndReadHighscoreFromFile.writeToFile(String.valueOf(currentScore*100), false);
         } else {
-            highScore = "Highscore: "+highscore;
+            highScore = "Highscore: "+highscoreBeforeGame;
         }
 
         for (int i = 0; i < playerText.length(); i++) {
@@ -154,16 +154,14 @@ public class Main {
             terminal.setCursorPosition(i,0);
             terminal.putCharacter(playerText.charAt(i));
         }
+
         int startArrayHighScore = 80 - highScore.length();
         for (int i = 0; i < highScore.length(); i++) {
             terminal.setForegroundColor(new TextColor.RGB(0,255,0));
             terminal.setCursorPosition(i+startArrayHighScore,0);
             terminal.putCharacter(highScore.charAt(i));
         }
-        if (score*100 > highscore){
-            writeAndRead.writeToFile(String.valueOf(score*100), false);
 
-        }
         terminal.resetColorAndSGR();
     }
 
@@ -200,18 +198,18 @@ public class Main {
         }
     }
 
-    private static List<Wall> createOuterFrame() {
-        List<Wall> walls = new ArrayList<>();
+    private static List<OuterWall> createOuterFrame() {
+        List<OuterWall> outerWalls = new ArrayList<>();
         for (int i = 1; i < 24; i++) {
-            walls.add(new Wall(80, i, 'X'));
-            walls.add(new Wall(0, i, 'X'));
+            outerWalls.add(new OuterWall(80, i, 'X'));
+            outerWalls.add(new OuterWall(0, i, 'X'));
         }
 
         for (int i = 0; i < 80; i++) {
-            walls.add(new Wall(i, 1, 'X'));
-            walls.add(new Wall(i, 24, 'X'));
+            outerWalls.add(new OuterWall(i, 1, 'X'));
+            outerWalls.add(new OuterWall(i, 24, 'X'));
         }
-        return walls;
+        return outerWalls;
     }
 
     private static List<MovingWall> createMovingWall() {
@@ -239,12 +237,6 @@ public class Main {
             }
         }
 
-    }
-
-    private static List<Enemy> createEnemy() {
-        List<Enemy> enemies = new ArrayList<>();
-        enemies.add(new Enemy(40, 10, 'Q'));
-        return enemies;
     }
 
     public static boolean isPlayerAlive(Player player, List<List<MovingWall>> allaVäggar) {
