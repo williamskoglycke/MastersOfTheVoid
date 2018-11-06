@@ -1,1 +1,6 @@
-# mini_project_one
+# MastersOfTheVoid
+
+# Projektarbete av:
+William Skoglycke
+Daniela Nord
+Björn Persson
