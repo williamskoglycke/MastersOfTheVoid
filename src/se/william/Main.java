@@ -18,14 +18,13 @@ public class Main {
             e.printStackTrace();
             System.exit(1);
         } finally {
-            System.out.println("Simulation over!");
+            System.out.println("Game over!");
         }
 
     }
 
     private static void startSimulation() throws IOException, InterruptedException {
         Terminal terminal = createTerminal();
-
         simulationLoop(terminal);
     }
 
@@ -37,13 +36,13 @@ public class Main {
     }
 
     private static void simulationLoop(Terminal terminal) throws InterruptedException, IOException {
-
-        Player player = new Player(10, 10, '\u263a');
+        Player player = new Player(10, 10, '\u0298');
         WriteAndRead writeAndRead = new WriteAndRead();
         List<OuterWall> outerWalls = createOuterFrame();
         List<MovingWall> movingWalls = createMovingWall();
-        List<List<MovingWall>> allaVäggar = new ArrayList<>();
-        allaVäggar.add(movingWalls);
+        List<List<MovingWall>> allWalls = new ArrayList<>();
+        //Måste lägga till första väggen manuellt annars får man en tom arrayList
+        allWalls.add(movingWalls);
 
         int timeCounterThreshold = 80;
         int timeCounter = 0;
@@ -63,55 +62,54 @@ public class Main {
                     timeCounter = 0;
 
                     // Skapar en ny vägg när den första kommit till x65
-                    for (int i = 0; i < allaVäggar.size(); i++) {
-                        if (allaVäggar.get(i).get(0).getX() == 65) {
-                            allaVäggar.add(createMovingWall());
+                    for (int i = 0; i < allWalls.size(); i++) {
+                        if (allWalls.get(i).get(0).getX() == 65) {
+                            allWalls.add(createMovingWall());
                             wallCounter++; // Lägger till en poäng per vägg
                         }
                     }
 
                     // Ökar svårighetsgraden var tredje skapad vägg
-                    switch (wallCounter) {
-                        case 3:
-                            timeCounterThreshold = 50;
-                            break;
-                        case 6:
-                            timeCounterThreshold = 40;
-                            break;
-                        case 9:
-                            timeCounterThreshold = 30;
-                            break;
-                        case 12:
-                            timeCounterThreshold = 20;
-                            break;
-                    }
-
-                    if (!isPlayerAlive(player, allaVäggar)) {
+//                    switch (wallCounter) {
+//                        case 3:
+//                            timeCounterThreshold = 50;
+//                            break;
+//                        case 6:
+//                            timeCounterThreshold = 40;
+//                            break;
+//                        case 9:
+//                            timeCounterThreshold = 30;
+//                            break;
+//                        case 12:
+//                            timeCounterThreshold = 20;
+//                            break;
+//                    }
+                    timeCounterThreshold = 10;
+                    //Kollar om spelaren lever då den står still
+                    if (!isPlayerAlive(player, allWalls)) {
                         break;
                     }
 
-                    for (List<MovingWall> enVägg : allaVäggar) {
-                        printMovingWall(terminal, enVägg);
-                    }
-
-                    for (List<MovingWall> enVägg : allaVäggar) {
-                        for (MovingWall flytta : enVägg) {
-                            flytta.moveLeft();
+                    for (List<MovingWall> aWall : allWalls) {
+                        printMovingWall(terminal, aWall);
+                        for (MovingWall singleWallObject : aWall) {
+                            singleWallObject.moveLeft();
                         }
                     }
 
-                    printPlayer(terminal, player);
                     printWall(terminal, outerWalls);
+                    printPlayer(terminal, player);
                     printScore(terminal, wallCounter, highScore, writeAndRead);
-                    removeDeadWall(allaVäggar);
+                    removeDeadWall(allWalls);
                     terminal.flush(); // don't forget to flush to see any updates!
                 }
 
 
             } while (keyStroke == null);
 
-            if (!isPlayerAlive(player, allaVäggar)) {
-                printGameOverScreen(terminal, highScore, wallCounter);
+            //Kollar om spelaren lever då den rör sig
+            if (!isPlayerAlive(player, allWalls)) {
+                printGameOverScreen(terminal);
                 terminal.flush();
                 break;
             }
@@ -123,44 +121,40 @@ public class Main {
         }
     }
 
-    private static void printGameOverScreen(Terminal terminal, int highScore, int score) throws IOException {
+    private static void printGameOverScreen(Terminal terminal) throws IOException {
         String gameOver =
-                "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo&" +
-                "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo&" +
-                "ooooooooooooo+++++++++oooooo++++++oooooo+++ooooooooo+++ooo++++++++++++oooooooooo&" +
-                "oooooooooooo/        `ooooo+      ooooo+   +oooooooo`  +oo`           /ooooooooo&" +
-                "ooooooooo+..-::::::::/oo+..-::::::-.-oo+   ...ooo--.   +oo`  :::::::::+ooooooooo&" +
-                "ooooooooo/  `oo+/////+oo+   //////   +o+   ```///.``   +oo`  //////+oooooooooooo&" +
-                "ooooooooo/  `oo/     `oo+            +o+   +oo   +oo`  +oo`        /oooooooooooo&" +
-                "ooooooooo/  `oo+//:  `oo+   /////:   +o+   +oo///ooo`  +oo`  ://///+oooooooooooo&" +
-                "ooooooooo+.../////:  `oo+   ooooo+   +o+   +oooooooo`  +oo`  :////////+ooooooooo&" +
-                "oooooooooooo/        `oo+  `ooooo+   +o+   +oooooooo`  +oo`           /ooooooooo&" +
-                "oooooooooooo+/////////ooo///oooooo///ooo///ooooooooo///ooo////////////+ooooooooo&" +
-                "oooooooooooo+//////oooooo///ooooooooo///ooo////////////ooo/////////+oooooooooooo&" +
-                "oooooooooooo/     `ooooo+  `oooooooo+   +o+            +oo`        /oooooooooooo&" +
-                "ooooooooo+...//////...oo+   oooooooo+   +o+   /////////ooo`  ://///...+ooooooooo&" +
-                "ooooooooo/  `ooooo+  `oo+   oooooooo+   +o+   ://///oooooo`  ://///`  /ooooooooo&" +
-                "ooooooooo/  `ooooo+  `oo+   oooooooo+   +o+         +ooooo`           /ooooooooo&" +
-                "ooooooooo/  `ooooo+  `ooo++/```oo+```/++oo+   /+++++oooooo`  /++`  :+++ooooooooo&" +
-                "ooooooooo+..-::::::..-ooooo+...:::-.-ooooo+   :::::::::+oo`  /oo--.:::+ooooooooo&" +
-                "oooooooooooo/     `ooooooooooo+   oooooooo+            +oo`  /ooooo`  /ooooooooo&" +
-                "ooooooooooooo++++++oooooooooooo+++ooooooooo++++++++++++ooo+++oooooo++++ooooooooo&" +
-                "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo&" +
-                "                                                                                ";
+                        "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo&" +
+                        "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo&" +
+                        "ooooooooooooo+++++++++oooooo++++++oooooo+++ooooooooo+++ooo++++++++++++oooooooooo&" +
+                        "oooooooooooo/        `ooooo+      ooooo+   +oooooooo`  +oo`           /ooooooooo&" +
+                        "ooooooooo+..-::::::::/oo+..-::::::-.-oo+   ...ooo--.   +oo`  :::::::::+ooooooooo&" +
+                        "ooooooooo/  `oo+/////+oo+   //////   +o+   ```///.``   +oo`  //////+oooooooooooo&" +
+                        "ooooooooo/  `oo/     `oo+            +o+   +oo   +oo`  +oo`        /oooooooooooo&" +
+                        "ooooooooo/  `oo+//:  `oo+   /////:   +o+   +oo///ooo`  +oo`  ://///+oooooooooooo&" +
+                        "ooooooooo+.../////:  `oo+   ooooo+   +o+   +oooooooo`  +oo`  :////////+ooooooooo&" +
+                        "oooooooooooo/        `oo+  `ooooo+   +o+   +oooooooo`  +oo`           /ooooooooo&" +
+                        "oooooooooooo+/////////ooo///oooooo///ooo///ooooooooo///ooo////////////+ooooooooo&" +
+                        "oooooooooooo+//////oooooo///ooooooooo///ooo////////////ooo/////////+oooooooooooo&" +
+                        "oooooooooooo/     `ooooo+  `oooooooo+   +o+            +oo`        /oooooooooooo&" +
+                        "ooooooooo+...//////...oo+   oooooooo+   +o+   /////////ooo`  ://///...+ooooooooo&" +
+                        "ooooooooo/  `ooooo+  `oo+   oooooooo+   +o+   ://///oooooo`  ://///`  /ooooooooo&" +
+                        "ooooooooo/  `ooooo+  `oo+   oooooooo+   +o+         +ooooo`           /ooooooooo&" +
+                        "ooooooooo/  `ooooo+  `ooo++/```oo+```/++oo+   /+++++oooooo`  /++`  :+++ooooooooo&" +
+                        "ooooooooo+..-::::::..-ooooo+...:::-.-ooooo+   :::::::::+oo`  /oo--.:::+ooooooooo&" +
+                        "oooooooooooo/     `ooooooooooo+   oooooooo+            +oo`  /ooooo`  /ooooooooo&" +
+                        "ooooooooooooo++++++oooooooooooo+++ooooooooo++++++++++++ooo+++oooooo++++ooooooooo&" +
+                        "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo&" +
+                        "                                                                                ";
 
         String[] gameOverArray = gameOver.split("&");
 
         terminal.setForegroundColor(new TextColor.RGB(0, 255, 0));
 
         for (int i = 0; i < gameOverArray.length; i++) {
-
             for (int j = 0; j < gameOverArray[i].length(); j++) {
-                //System.out.println(gameOverArray[i].length());
-                //System.out.print(gameOverArray[i].charAt(j));
-                terminal.setCursorPosition(j, i+1);
+                terminal.setCursorPosition(j, i + 1);
                 terminal.putCharacter(gameOverArray[i].charAt(j));
             }
-            System.out.println();
         }
     }
 
@@ -169,15 +163,14 @@ public class Main {
         terminal.putCharacter(' ');
 
         terminal.setCursorPosition(player.getX(), player.getY());
+        terminal.setForegroundColor(new TextColor.RGB(255, 255, 0));
         terminal.putCharacter(player.getSymbol());
+        terminal.resetColorAndSGR();
     }
 
     private static void printWall(Terminal terminal, List<OuterWall> outerWalls) throws IOException {
 
         for (OuterWall outerWall : outerWalls) {
-            terminal.setCursorPosition(outerWall.getPreviousX(), outerWall.getPreviousY());
-            terminal.putCharacter(' ');
-
             terminal.setCursorPosition(outerWall.getX(), outerWall.getY());
             terminal.setForegroundColor(new TextColor.RGB(0, 255, 0));
             terminal.putCharacter(outerWall.getSymbol());
@@ -186,20 +179,21 @@ public class Main {
     }
 
     private static void printScore(Terminal terminal, int currentScore, int highscoreBeforeGame, WriteAndRead writeAndReadHighscoreFromFile) throws IOException {
+        int score = currentScore *100;
 
-        String playerText = "Player 1: Score " + (currentScore * 100);
-        String highScore = "";
-        if (currentScore * 100 > highscoreBeforeGame) {
-            highScore = "Highscore: " + currentScore * 100;
-            writeAndReadHighscoreFromFile.writeToFile(String.valueOf(currentScore * 100), false);
+        String playerScore = "Player 1: Score " + (score);
+        String highScore;
+        if (score > highscoreBeforeGame) {
+            highScore = "Highscore: " + score;
+            writeAndReadHighscoreFromFile.writeToFile(String.valueOf(score), false);
         } else {
             highScore = "Highscore: " + highscoreBeforeGame;
         }
 
-        for (int i = 0; i < playerText.length(); i++) {
+        for (int i = 0; i < playerScore.length(); i++) {
             terminal.setForegroundColor(new TextColor.RGB(0, 255, 0));
             terminal.setCursorPosition(i, 0);
-            terminal.putCharacter(playerText.charAt(i));
+            terminal.putCharacter(playerScore.charAt(i));
         }
 
         int startArrayHighScore = 80 - highScore.length();
@@ -248,8 +242,7 @@ public class Main {
     private static List<OuterWall> createOuterFrame() {
         List<OuterWall> outerWalls = new ArrayList<>();
         for (int i = 1; i < 24; i++) {
-            outerWalls.add(new OuterWall(80, i, 'X'));
-            outerWalls.add(new OuterWall(0, i, 'X'));
+            outerWalls.add(new OuterWall(0, i, ' '));
         }
 
         for (int i = 0; i < 80; i++) {
@@ -264,9 +257,9 @@ public class Main {
         int gap = ThreadLocalRandom.current().nextInt(1, 21);
         for (int i = 1; i < 23; i++) {
             if (i == gap || i == gap + 1) {
-                walls.add(new MovingWall(77, i, ' '));
+                walls.add(new MovingWall(79, i, ' '));
             } else {
-                walls.add(new MovingWall(77, i, '<'));
+                walls.add(new MovingWall(79, i, '<'));
             }
 
         }
@@ -278,7 +271,7 @@ public class Main {
         for (int i = 0; i < allWalls.size(); i++) {
             List<MovingWall> wall = allWalls.get(i);
             for (int j = 0; j < wall.size(); j++) {
-                if (wall.get(j).getX() == -2) {
+                if (wall.get(j).getX() == 60) {
                     wall.remove(j);
                 }
             }
