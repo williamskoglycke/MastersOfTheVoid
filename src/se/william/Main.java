@@ -41,8 +41,11 @@ public class Main {
         List<OuterWall> outerWalls = createOuterFrame();
         List<MovingWall> movingWalls = createMovingWall();
         List<List<MovingWall>> allWalls = new ArrayList<>();
+        Mp3Player mp3Player = new Mp3Player();
         //Måste lägga till första väggen manuellt annars får man en tom arrayList
         allWalls.add(movingWalls);
+
+        mp3Player.play("dumbo.mp3", true);
 
         int timeCounterThreshold = 80;
         int timeCounter = 0;
@@ -86,7 +89,7 @@ public class Main {
 //                    }
                     timeCounterThreshold = 10;
                     //Kollar om spelaren lever då den står still
-                    if (!isPlayerAlive(player, allWalls)) {
+                    if (!isPlayerAlive(player, allWalls, mp3Player)) {
                         break;
                     }
 
@@ -97,10 +100,10 @@ public class Main {
                         }
                     }
 
+                    removeDeadWall(allWalls);
                     printWall(terminal, outerWalls);
                     printPlayer(terminal, player);
                     printScore(terminal, wallCounter, highScore, writeAndRead);
-                    removeDeadWall(allWalls);
                     terminal.flush(); // don't forget to flush to see any updates!
                 }
 
@@ -108,7 +111,7 @@ public class Main {
             } while (keyStroke == null);
 
             //Kollar om spelaren lever då den rör sig
-            if (!isPlayerAlive(player, allWalls)) {
+            if (!isPlayerAlive(player, allWalls, mp3Player)) {
                 printGameOverScreen(terminal);
                 terminal.flush();
                 break;
@@ -269,20 +272,23 @@ public class Main {
     private static void removeDeadWall(List<List<MovingWall>> allWalls) {
 
         for (int i = 0; i < allWalls.size(); i++) {
+
             List<MovingWall> wall = allWalls.get(i);
             for (int j = 0; j < wall.size(); j++) {
-                if (wall.get(j).getX() == 60) {
-                    wall.remove(j);
+                if (wall.get(j).getX() == 0) {
+                    allWalls.remove(wall);
                 }
             }
+
         }
 
     }
 
-    public static boolean isPlayerAlive(Player player, List<List<MovingWall>> allaVäggar) {
-        for (List<MovingWall> movingWalls : allaVäggar) {
-            for (MovingWall väggPlupp : movingWalls) {
-                if ((player.getX() == väggPlupp.getX()) && (player.getY() == väggPlupp.getY()) && (väggPlupp.getSymbol() == '<')) {
+    public static boolean isPlayerAlive(Player player, List<List<MovingWall>> allWalls, Mp3Player sound) {
+        for (List<MovingWall> movingWalls : allWalls) {
+            for (MovingWall singleWallObject : movingWalls) {
+                if ((player.getX() == singleWallObject.getX()) && (player.getY() == singleWallObject.getY()) && (singleWallObject.getSymbol() == '<')) {
+                    sound.stopAll();
                     return false;
                 }
             }
