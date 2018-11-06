@@ -72,22 +72,21 @@ public class Main {
                         }
                     }
 
-                    // Ökar svårighetsgraden var tredje skapad vägg
-//                    switch (wallCounter) {
-//                        case 3:
-//                            timeCounterThreshold = 50;
-//                            break;
-//                        case 6:
-//                            timeCounterThreshold = 40;
-//                            break;
-//                        case 9:
-//                            timeCounterThreshold = 30;
-//                            break;
-//                        case 12:
-//                            timeCounterThreshold = 20;
-//                            break;
-//                    }
-                    timeCounterThreshold = 10;
+                    //Ökar svårighetsgraden var tredje skapad vägg
+                    switch (wallCounter) {
+                        case 3:
+                            timeCounterThreshold = 50;
+                            break;
+                        case 6:
+                            timeCounterThreshold = 40;
+                            break;
+                        case 9:
+                            timeCounterThreshold = 30;
+                            break;
+                        case 12:
+                            timeCounterThreshold = 20;
+                            break;
+                    }
                     //Kollar om spelaren lever då den står still
                     if (!isPlayerAlive(player, allWalls, mp3Player)) {
                         break;
@@ -126,7 +125,7 @@ public class Main {
 
     private static void printGameOverScreen(Terminal terminal) throws IOException {
         String gameOver =
-                        "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo&" +
+                "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo&" +
                         "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo&" +
                         "ooooooooooooo+++++++++oooooo++++++oooooo+++ooooooooo+++ooo++++++++++++oooooooooo&" +
                         "oooooooooooo/        `ooooo+      ooooo+   +oooooooo`  +oo`           /ooooooooo&" +
@@ -182,7 +181,7 @@ public class Main {
     }
 
     private static void printScore(Terminal terminal, int currentScore, int highscoreBeforeGame, WriteAndRead writeAndReadHighscoreFromFile) throws IOException {
-        int score = currentScore *100;
+        int score = currentScore * 100;
 
         String playerScore = "Player 1: Score " + (score);
         String highScore;
